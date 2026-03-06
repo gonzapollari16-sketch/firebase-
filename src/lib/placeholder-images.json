@@ -1,0 +1,58 @@
+{
+  "placeholderImages": [
+    {
+      "id": "hero-1",
+      "description": "Modern house hero image",
+      "imageUrl": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1920&auto=format&fit=crop",
+      "imageHint": "modern house"
+    },
+    {
+      "id": "1",
+      "description": "Modern loft in a city",
+      "imageUrl": "https://images.unsplash.com/photo-1704428381312-0579346a779c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxtb2Rlcm4lMjBsb2Z0fGVufDB8fHx8MTc2ODI1ODk0Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "modern loft"
+    },
+    {
+      "id": "2",
+      "description": "Spacious suburban house with a nice lawn",
+      "imageUrl": "https://images.unsplash.com/photo-1570129477492-45c003edd2be?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxzdWJ1cmJhbiUyMGhvdXNlfGVufDB8fHx8MTc2ODI0Njg0MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "suburban house"
+    },
+    {
+      "id": "3",
+      "description": "Cozy apartment with a balcony",
+      "imageUrl": "https://images.unsplash.com/photo-1701946147341-4a664af4325e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjb3p5JTIwYXBhcnRtZW50fGVufDB8fHx8MTc2ODI2MDY1N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cozy apartment"
+    },
+    {
+      "id": "4",
+      "description": "Large family home in a quiet neighborhood",
+      "imageUrl": "https://images.unsplash.com/photo-1601758003122-53c40e686a19?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxmYW1pbHklMjBob21lfGVufDB8fHx8MTc2ODM0NTkyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "family home"
+    },
+    {
+      "id": "5",
+      "description": "Bright and airy downtown apartment",
+      "imageUrl": "https://images.unsplash.com/photo-1585793700745-c0013db81e7d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxkb3dudG93biUyMGFwYXJ0bWVudHxlbnwwfHx8fDE3NjgyNTIyNzN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "downtown apartment"
+    },
+    {
+      "id": "6",
+      "description": "Luxury villa with a swimming pool",
+      "imageUrl": "https://images.unsplash.com/photo-1613490493576-7fde63acd811?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjB2aWxsYXxlbnwwfHx8fDE3NjgyOTEyNDh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "luxury villa"
+    },
+    {
+      "id": "7",
+      "description": "Modern office space in business district",
+      "imageUrl": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxvZmZpY2UlMjBzcGFjZXxlbnwwfHx8fDE3NjgzNTA0MzZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "office space"
+    },
+    {
+      "id": "8",
+      "description": "Large warehouse for industrial use",
+      "imageUrl": "https://images.unsplash.com/photo-1557761469-f29c6e201784?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxpbmR1c3RyaWFsJTIwd2FyZWhvdXNlfGVufDB8fHx8MTc2ODMxMzYwMXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "industrial warehouse"
+    }
+  ]
+}

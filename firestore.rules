@@ -1,0 +1,89 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * CRUSHOME SECURITY KERNEL v7.1
+     * Multi-tenant RLS + RBAC con soporte recursivo para sub-colecciones.
+     */
+
+    // --- Core Security Functions ---
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Valida que el usuario tenga acceso al tenant específico mediante Custom Claims
+    function hasTenantAccess(tenantId) {
+      return isSignedIn() && request.auth.token.tenants.keys().hasAny([tenantId]);
+    }
+
+    // Valida roles específicos dentro de un tenant
+    function hasRole(tenantId, role) {
+      return hasTenantAccess(tenantId) && (request.auth.token.tenants[tenantId] == role || request.auth.token.tenants[tenantId] == 'ADMIN');
+    }
+
+    function isSelf(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // --- Multi-tenant Collection Rules ---
+
+    match /tenants/{tenantId} {
+      
+      allow get: if hasTenantAccess(tenantId);
+
+      /**
+       * @description Perfiles de usuario aislados.
+       */
+      match /users/{userId} {
+        allow read: if hasTenantAccess(tenantId) && (isSelf(userId) || hasRole(tenantId, 'OWNER'));
+        allow create: if false; // Solo vía Onboarding Service
+        allow update: if hasTenantAccess(tenantId) && isSelf(userId);
+        allow delete: if hasTenantAccess(tenantId) && hasRole(tenantId, 'OWNER') && !isSelf(userId);
+      }
+
+      /**
+       * @description Inventario de propiedades y sus sub-colecciones.
+       */
+      match /properties/{propertyId} {
+        allow read: if hasTenantAccess(tenantId);
+        allow create, update: if hasTenantAccess(tenantId) && (hasRole(tenantId, 'OWNER') || hasRole(tenantId, 'AGENT'));
+        allow delete: if hasTenantAccess(tenantId) && hasRole(tenantId, 'OWNER');
+
+        // Soporte para sub-colecciones (historial de precios, auditoría, etc.)
+        match /{allSubCollections=**} {
+          allow read: if hasTenantAccess(tenantId);
+          allow write: if hasTenantAccess(tenantId) && (hasRole(tenantId, 'OWNER') || hasRole(tenantId, 'AGENT'));
+        }
+      }
+
+      /**
+       * @description Invitaciones de la organización.
+       */
+      match /invitations/{inviteId} {
+        allow read: if hasTenantAccess(tenantId);
+        allow create, delete: if hasTenantAccess(tenantId) && hasRole(tenantId, 'OWNER');
+      }
+    }
+
+    /**
+     * @description Colección global de propiedades para deduplicación (Punto 1 del Master Plan).
+     * Solo lectura autenticada para el motor de matching.
+     */
+    match /properties/{propertyId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn(); // Permitir creación inicial para deduplicación global
+    }
+
+    // --- System Global ---
+    match /system_policies/{id} {
+      allow read: if isSignedIn();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

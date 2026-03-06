@@ -1,0 +1,32 @@
+import type { Firestore } from 'firebase/firestore';
+
+/**
+ * @fileOverview Tenant Resolver.
+ * Uses dynamic imports for implementation to ensure SSR safety.
+ */
+export class TenantManager {
+  static async resolveTenant(userId: string, db: Firestore) {
+    const { doc, getDoc } = await import('firebase/firestore');
+    try {
+      const userRef = doc(db, 'users', userId);
+      const userSnap = await getDoc(userRef);
+      
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        return {
+          id: userData.tenantId || 'default-tenant',
+          name: userData.tenantName || 'Crushome Default',
+          plan: userData.plan || 'free'
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Error resolving tenant:', error);
+      return null;
+    }
+  }
+
+  static getStoragePath(tenantId: string, path: string): string {
+    return `tenants/${tenantId}/${path}`;
+  }
+}

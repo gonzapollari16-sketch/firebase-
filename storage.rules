@@ -1,0 +1,33 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    /**
+     * CRUSHOME STORAGE KERNEL
+     * Tenant Isolation via Custom Claims.
+     */
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function hasTenantAccess(tenantId) {
+      return isSignedIn() && request.auth.token.tenantId == tenantId;
+    }
+
+    function isAdmin(tenantId) {
+      return hasTenantAccess(tenantId) && (request.auth.token.role == 'OWNER' || request.auth.token.role == 'ADMIN');
+    }
+
+    // Aislamiento de archivos por Tenant
+    match /tenants/{tenantId}/{allPaths=**} {
+      allow read: if hasTenantAccess(tenantId);
+      allow write: if isAdmin(tenantId);
+    }
+
+    // Denegación global
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,17 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "logo-main",
+      "description": "Logo oficial de CRUSHOME",
+      "imageUrl": "https://picsum.photos/seed/crushome-logo/200/200",
+      "imageHint": "real estate logo"
+    },
+    {
+      "id": "assistant-ia",
+      "description": "Avatar del asistente inteligente CRUSHIA",
+      "imageUrl": "https://picsum.photos/seed/ai-assistant/400/400",
+      "imageHint": "ai assistant"
+    }
+  ]
+}

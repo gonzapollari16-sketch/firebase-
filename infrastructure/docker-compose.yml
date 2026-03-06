@@ -1,0 +1,53 @@
+
+version: '3.8'
+
+services:
+  # CAPA DE APLICACIÓN
+  api:
+    build: 
+      context: ..
+      dockerfile: infrastructure/docker/api.Dockerfile
+    environment:
+      - DATABASE_URL=postgresql://crush_admin:${DB_PASSWORD}@db:5432/crushome
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - db
+      - redis
+    networks:
+      - crushome-net
+
+  # CAPA DE PROCESAMIENTO
+  worker:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/worker.Dockerfile
+    environment:
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    networks:
+      - crushome-net
+
+  # INFRAESTRUCTURA CORE
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: crushome
+      POSTGRES_USER: crush_admin
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - crushome-net
+
+  redis:
+    image: redis:7-alpine
+    networks:
+      - crushome-net
+
+networks:
+  crushome-net:
+    driver: bridge
+
+volumes:
+  pg_data:

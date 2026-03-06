@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Perfil de usuario con rol, plan y configuración de tenant.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["ADMIN", "OWNER", "AGENT", "USER"] },
+        "plan": { "type": "string", "enum": ["FREE", "STARTER", "PRO", "PREMIUM", "ENTERPRISE"] },
+        "tenantId": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "invited", "disabled"] }
+      }
+    },
+    "Property": {
+      "title": "Property",
+      "description": "Activo inmobiliario con metadatos para matching.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "price": { "type": "number" },
+        "tenantId": { "type": "string" },
+        "status": { "type": "string" }
+      }
+    }
+  },
+  "auth": {
+    "providers": ["password", "google.com"],
+    "customClaims": ["role", "tenantId"]
+  },
+  "firestore": {
+    "/tenants/{tenantId}/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Usuarios aislados por organización."
+    },
+    "/tenants/{tenantId}/properties/{propertyId}": {
+      "schema": "Property",
+      "description": "Propiedades aisladas por organización."
+    }
+  }
+}

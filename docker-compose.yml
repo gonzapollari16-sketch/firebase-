@@ -1,0 +1,71 @@
+
+version: '3.8'
+
+services:
+  # INFRASTRUCTURE
+  db:
+    image: postgres:15-alpine
+    container_name: crushome-db
+    environment:
+      POSTGRES_DB: crushome
+      POSTGRES_USER: crush_admin
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - crushome-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: crushome-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - crushome-net
+
+  # MICROSERVICES
+  api-gateway:
+    build: ./apps/api-gateway
+    container_name: crushome-gateway
+    environment:
+      - PORT=4000
+      - REDIS_URL=redis://redis:6379
+      - DB_URL=postgresql://crush_admin:${DB_PASSWORD}@db:5432/crushome
+    depends_on:
+      - db
+      - redis
+    ports:
+      - "4000:4000"
+    networks:
+      - crushome-net
+
+  whatsapp-service:
+    build: ./apps/whatsapp-service
+    container_name: crushome-whatsapp
+    environment:
+      - META_ACCESS_TOKEN=${META_ACCESS_TOKEN}
+      - META_VERIFY_TOKEN=${META_VERIFY_TOKEN}
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    networks:
+      - crushome-net
+
+  match-service:
+    build: ./apps/match-service
+    container_name: crushome-match-engine
+    environment:
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    networks:
+      - crushome-net
+
+networks:
+  crushome-net:
+    driver: bridge
+
+volumes:
+  pg_data:
