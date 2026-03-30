@@ -2,7 +2,7 @@
  * @fileOverview Gestión de Invitaciones (Admin SDK Modular).
  */
 
-import { adminAuth, adminDb } from '@/firebase/admin';
+import { getAdminAuth, getAdminDb } from '@/firebase/admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { addUserToTenantClaims } from './auth-admin.service';
 
@@ -12,6 +12,7 @@ export async function createInvitation(data: {
   role: 'AGENT' | 'USER';
   invitedBy: string;
 }) {
+  const adminDb = getAdminDb();
   const inviteId = Math.random().toString(36).substring(2, 15);
   const inviteRef = adminDb.collection('tenants').doc(data.tenantId).collection('invitations').doc(inviteId);
   
@@ -31,6 +32,8 @@ export async function createInvitation(data: {
 }
 
 export async function acceptInvitation(idToken: string, tenantId: string, inviteId: string) {
+  const adminAuth = getAdminAuth();
+  const adminDb = getAdminDb();
   const decodedToken = await adminAuth.verifyIdToken(idToken);
   const uid = decodedToken.uid;
   const email = decodedToken.email!.toLowerCase();

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Providers } from './providers';
+import { Sidebar } from '@/components/sidebar';
 import Script from 'next/script';
 
 /**
@@ -35,7 +36,10 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <Providers>
-          {children}
+          <div style={{ display: "flex", minHeight: "100vh" }}>
+            <Sidebar />
+            <main style={{ flex: 1, overflow: "auto" }}>{children}</main>
+          </div>
         </Providers>
 
         {/* Carga de dependencias externas críticas */}

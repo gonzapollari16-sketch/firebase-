@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MediaGateway, DownloadRequest } from '@/core/media/media-gateway';
-import { adminDb } from '@/firebase/admin';
+import { getAdminDb } from '@/firebase/admin';
 import type { UserRole, SubscriptionPlan } from '@/lib/types';
 
 /**
  * @fileOverview Endpoint de descarga segura de imágenes.
  * Usa exclusivamente el Admin SDK para evitar conflictos de bundling con el Client SDK.
  */
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(
   req: NextRequest,
@@ -19,7 +21,8 @@ export async function GET(
       return NextResponse.json({ error: 'ID de imagen requerido' }, { status: 400 });
     }
     
-    // 1. Obtener datos de la imagen usando Admin DB
+    // 1. Obtener datos de la imagen usando Admin DB (con inicialización perezosa)
+    const adminDb = getAdminDb();
     const imageSnap = await adminDb.collection('media').doc(imageId).get();
 
     if (!imageSnap.exists) {

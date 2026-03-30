@@ -19,10 +19,21 @@ export class TenantManager {
           plan: userData.plan || 'free'
         };
       }
-      return null;
+      
+      console.warn(`[CORE] User document not found for userId: ${userId}. Falling back to default tenant.`);
+      return {
+        id: 'default-tenant',
+        name: 'Crushome Default',
+        plan: 'free'
+      };
+
     } catch (error) {
       console.error('Error resolving tenant:', error);
-      return null;
+      return {
+        id: 'default-tenant',
+        name: 'Crushome Default',
+        plan: 'free'
+      };
     }
   }
 

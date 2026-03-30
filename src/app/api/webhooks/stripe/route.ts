@@ -3,6 +3,12 @@ import { db, logEvent } from '@/lib/growth-db';
 
 // The body of this function will be the raw JSON from Stripe.
 // We are not verifying the signature here for simplicity, but in production, you must.
+
+// Forzar el renderizado dinámico para evitar errores de compilación estática.
+export async function generateStaticParams() {
+  return [];
+}
+
 export async function POST(request: Request) {
   try {
     const event = await request.json();

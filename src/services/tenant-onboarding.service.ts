@@ -3,7 +3,7 @@
  * Servidor-only: Usa Firebase Admin SDK modular.
  */
 
-import { adminAuth, adminDb } from '@/firebase/admin';
+import { getAdminAuth, getAdminDb } from '@/firebase/admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { addUserToTenantClaims } from './auth-admin.service';
 
@@ -11,6 +11,8 @@ export async function onboardUser(data: {
   idToken: string;
   organizationName: string;
 }) {
+  const adminAuth = getAdminAuth();
+  const adminDb = getAdminDb();
   try {
     const decodedToken = await adminAuth.verifyIdToken(data.idToken);
     const uid = decodedToken.uid;

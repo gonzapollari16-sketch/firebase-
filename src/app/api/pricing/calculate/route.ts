@@ -1,14 +1,18 @@
 import { NextResponse } from 'next/server';
 import { PricingEngineService } from '@/services/pricing-engine.service';
-import { adminDb } from '@/firebase/admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
 /**
  * @fileOverview API Route consolidada para cálculo de pricing.
  * Usa exclusivamente el Admin SDK modular para evitar fallos de inicialización.
  */
+
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request) {
   try {
+    const { getAdminDb } = await import('@/firebase/admin');
+    const adminDb = getAdminDb();
     const body = await req.json();
     const { propertyId, tenantId, metros, barrio, tipo, ambientes, userId } = body;
 

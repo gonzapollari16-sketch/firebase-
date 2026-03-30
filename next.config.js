@@ -9,6 +9,17 @@ const nextConfig = {
       { protocol: 'https', hostname: 'avatar.vercel.sh' },
     ],
   },
+  webpack: (
+    config,
+    { isServer }
+  ) => {
+    if (isServer) {
+      // These packages are problematic with Next.js's build process.
+      config.externals.push('@genkit-ai/core', '@opentelemetry/api');
+    }
+
+    return config;
+  },
 };
 
 module.exports = nextConfig;

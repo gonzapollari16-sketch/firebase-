@@ -73,8 +73,7 @@ service cloud.firestore {
      * Solo lectura autenticada para el motor de matching.
      */
     match /properties/{propertyId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn(); // Permitir creación inicial para deduplicación global
+        allow read, write: if isSignedIn();
     }
 
     // --- System Global ---

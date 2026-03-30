@@ -4,8 +4,6 @@
  * Refactorizado para usar exclusivamente el Admin SDK en el servidor.
  */
 
-import { adminDb } from '@/firebase/admin';
-
 export const ALGORITHM_VERSION = "ridge-v1.0.0";
 
 export interface ModelMetadata {

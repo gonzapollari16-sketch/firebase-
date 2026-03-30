@@ -32,11 +32,16 @@ export default function AuthForm() {
     
     setIsLoading(true);
     try {
-      // FLUJO UNIFICADO IDEMPOTENTE
       const result = await authenticateOrRegister(auth, email, password, isLogin);
 
       if (result.error) {
         toast({ variant: 'destructive', title: 'Error de Acceso', description: result.error });
+        setIsLoading(false);
+        return;
+      }
+
+      if (!result.user) {
+        toast({ variant: 'destructive', title: 'Error Inesperado', description: 'No se pudo obtener el usuario. Intente de nuevo.' });
         setIsLoading(false);
         return;
       }
@@ -52,8 +57,7 @@ export default function AuthForm() {
         if (onboardingResult.error) {
           toast({ variant: 'destructive', title: 'Aviso de Configuración', description: 'Tu cuenta se creó pero hubo un problema configurando tu organización. El sistema intentará auto-repararse al ingresar.' });
         } else {
-          // Forzar refresh para obtener los claims recién creados
-          await result.user.getIdToken(true);
+          await result.user.getIdToken(true); // Forzar refresh para obtener los claims
           toast({ title: '¡Bienvenido!', description: 'Tu cuenta y organización han sido configuradas.' });
         }
       } else if (!isLogin) {
@@ -74,7 +78,6 @@ export default function AuthForm() {
   return (
     <Card className="max-w-4xl w-full border-0 shadow-2xl overflow-hidden bg-card/80 backdrop-blur-md grid md:grid-cols-2">
       
-      {/* PANEL IZQUIERDO: BRANDING */}
       <div className="bg-gradient-to-br from-[#0E1026] to-[#3A2F7D] p-12 text-white flex flex-col justify-center">
         <CrushomeLogo className="text-4xl text-white mb-6 scale-125" />
         <h1 className="text-3xl font-black mb-4 tracking-tighter">Bienvenido a CRUSHOME</h1>
@@ -86,7 +89,6 @@ export default function AuthForm() {
         </div>
       </div>
 
-      {/* PANEL DERECHO: FORMULARIO */}
       <CardContent className="p-10 bg-white dark:bg-[#07081a]">
         <div className="mb-8">
           <h2 className="text-2xl font-black tracking-tighter">{isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}</h2>

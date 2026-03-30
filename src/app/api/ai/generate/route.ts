@@ -4,6 +4,12 @@ import { ai } from '@/ai/genkit';
 /**
  * @fileOverview API Gateway de IA básica (Versión Original).
  */
+
+// Forzar el renderizado dinámico para evitar errores de compilación estática.
+export async function generateStaticParams() {
+  return [];
+}
+
 export async function POST(req: Request) {
   try {
     const { prompt, system, model = 'googleai/gemini-1.5-flash' } = await req.json();

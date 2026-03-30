@@ -1,3 +1,7 @@
+cat src/app/page.tsx | head -n 50
+ls src/components/auth
+cat src/components/auth/AuthForm.tsx
+cat src/components/auth/AuthForm.tsx | head -n 100
 {
   "$schema": "https://ui.shadcn.com/schema.json",
   "style": "default",

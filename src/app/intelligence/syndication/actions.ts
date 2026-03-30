@@ -5,7 +5,7 @@
  * Ejecución 100% Server-Side usando Admin SDK para máxima seguridad.
  */
 
-import { adminDb } from '@/firebase/admin';
+import { getAdminDb } from '@/firebase/admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
 export interface PortalConnection {
@@ -21,6 +21,7 @@ export interface PortalConnection {
  * Recupera el estado de los portales conectados para un Tenant.
  */
 export async function getPortalStatus(tenantId: string): Promise<PortalConnection[]> {
+  const adminDb = getAdminDb();
   try {
     // En producción, esto consulta la sub-colección /tenants/{tenantId}/integrations
     const snapshot = await adminDb.collection('tenants').doc(tenantId).collection('integrations').get();
@@ -48,6 +49,7 @@ export async function getPortalStatus(tenantId: string): Promise<PortalConnectio
  * Dispara un proceso de sincronización masiva para el Tenant.
  */
 export async function runSyndication(tenantId: string) {
+  const adminDb = getAdminDb();
   try {
     const jobRef = adminDb.collection('tenants').doc(tenantId).collection('jobs').doc();
     
