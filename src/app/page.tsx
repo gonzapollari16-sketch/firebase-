@@ -101,6 +101,52 @@ export default function ExecutiveDashboard() {
           </div>
         </div>
       </section>
+      
+      {/* SECCIÓN DE OPERACIONES ESTRATÉGICAS */}
+      <section className="space-y-6">
+        <div className="flex items-center gap-3 px-2">
+          <div className="h-1 w-12 bg-accent rounded-full"></div>
+          <h2 className="text-xs font-black uppercase tracking-[0.4em] text-white/40">Operaciones Estratégicas</h2>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* CARGAR PROPIEDAD */}
+          <Link href="/property/add" className="group">
+            <div className="relative h-32 overflow-hidden rounded-[2rem] border border-white/5 bg-white/[0.03] p-6 transition-all hover:bg-white/[0.08] hover:border-white/20">
+              <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-30 transition-opacity">
+                <Filter className="h-16 w-16 -rotate-12" />
+              </div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-accent mb-2">Inventario</p>
+              <h3 className="text-xl font-black italic uppercase tracking-tighter text-white">Publicar Inmueble</h3>
+              <p className="text-[10px] text-white/40 mt-1 uppercase font-bold">Carga masiva o individual v2.1</p>
+            </div>
+          </Link>
+
+          {/* BUSCADOR IA */}
+          <Link href="/property/search" className="group">
+            <div className="relative h-32 overflow-hidden rounded-[2rem] border border-accent/20 bg-accent/5 p-6 transition-all hover:bg-accent/10 hover:border-accent/40 shadow-lg shadow-accent/5">
+              <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-30 transition-opacity">
+                <Search className="h-16 w-16 -rotate-12" />
+              </div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-pink-500 mb-2">Cognición</p>
+              <h3 className="text-xl font-black italic uppercase tracking-tighter text-white">Buscador IA</h3>
+              <p className="text-[10px] text-white/40 mt-1 uppercase font-bold">Matching semántico en tiempo real</p>
+            </div>
+          </Link>
+
+          {/* CRUSHIA ADVISOR */}
+          <Link href="/intelligence/crm" className="group">
+            <div className="relative h-32 overflow-hidden rounded-[2rem] border border-indigo-500/20 bg-indigo-500/5 p-6 transition-all hover:bg-indigo-500/10 hover:border-indigo-500/40">
+              <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-30 transition-opacity">
+                <Sparkles className="h-16 w-16 -rotate-12" />
+              </div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-2">Inteligencia</p>
+              <h3 className="text-xl font-black italic uppercase tracking-tighter text-white">CrushIA Advisor</h3>
+              <p className="text-[10px] text-white/40 mt-1 uppercase font-bold">Análisis de mercado y CRM Neural</p>
+            </div>
+          </Link>
+        </div>
+      </section>
 
       {/* CARRUSEL DE DESTACADOS */}
       <section className="space-y-6">

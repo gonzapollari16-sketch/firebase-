@@ -31,14 +31,16 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
         <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
       </head>
-      <body className="antialiased">
+      <body className="antialiased selection:bg-accent/30 selection:text-white">
         <Providers>
-          <div style={{ display: "flex", minHeight: "100vh" }}>
+          <div className="flex min-h-screen">
             <Sidebar />
-            <main style={{ flex: 1, overflow: "auto" }}>{children}</main>
+            <main className="flex-1 overflow-auto relative">
+              {children}
+            </main>
           </div>
         </Providers>
 
