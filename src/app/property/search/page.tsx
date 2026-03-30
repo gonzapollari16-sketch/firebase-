@@ -29,7 +29,9 @@ type AIState =
   | 'found_result' 
   | 'empathetic' 
   | 'reformulating' 
-  | 'suggesting_alternative';
+  | 'suggesting_alternative'
+  | 'no_results'
+  | 'confusion';
 
 const StateConfig: Record<AIState, { label: string; statusText: string; imagePath: string; colorClass: string; duration: number }> = {
   idle: { label: 'En espera', statusText: 'Crushia está lista para escucharte', imagePath: '/images/assistant-ia.png', colorClass: 'from-[#7A3DF0] to-[#E63A8C]', duration: 0 },
@@ -40,7 +42,9 @@ const StateConfig: Record<AIState, { label: string; statusText: string; imagePat
   found_result: { label: '¡Encontré algo!', statusText: '¡Encontré lugares que podrían gustarte!', imagePath: '/images/assistant-ia.png', colorClass: 'from-[#34D399] to-[#059669]', duration: 2800 },
   empathetic: { label: 'Entiendo tu punto', statusText: 'Entiendo... vamos a buscar algo mejor', imagePath: '/images/assistant-ia.png', colorClass: 'from-[#f59e0b] to-[#d97706]', duration: 1500 },
   reformulating: { label: 'Ajustando búsqueda', statusText: 'Refinando la búsqueda con tu feedback...', imagePath: '/images/assistant-ia.png', colorClass: 'from-[#8B5CF6] to-[#6366F1]', duration: 1600 },
-  suggesting_alternative: { label: 'Tengo alternativas', statusText: 'Encontré opciones cercanas a lo que buscás', imagePath: '/images/assistant-ia.png', colorClass: 'from-[#06B6D4] to-[#0891B2]', duration: 2000 }
+  suggesting_alternative: { label: 'Tengo alternativas', statusText: 'Encontré opciones cercanas a lo que buscás', imagePath: '/images/assistant-ia.png', colorClass: 'from-[#06B6D4] to-[#0891B2]', duration: 2000 },
+  no_results: { label: 'Sin datos exactos', statusText: 'No encontré propiedades con esa descripción específica', imagePath: '/images/assistant-ia.png', colorClass: 'from-[#6B7280] to-[#374151]', duration: 1000 },
+  confusion: { label: 'No comprendí', statusText: 'No logré entenderte. ¿Podés intentar con otras palabras?', imagePath: '/images/assistant-ia.png', colorClass: 'from-[#EF4444] to-[#991B1B]', duration: 1000 }
 };
 
 export default function CrushiaSearchPage() {
@@ -107,21 +111,48 @@ export default function CrushiaSearchPage() {
     setAiState('searching');
     await new Promise(r => setTimeout(r, StateConfig.searching.duration));
 
-    // Lógica de Ranking Cognitivo
-    const scored = mockProperties.map(p => {
-      let score = Math.random() * 40 + 30;
-      if (p.barrio?.toLowerCase().includes(text.toLowerCase())) score += 30;
-      if (driver === "familia" && p.ambientes >= 3) score += 20;
-      if (ucm.rejected.includes(p.id)) score -= 50;
+    // Lógica de Ranking Cognitivo basada en coincidencia real
+    const textLower = text.toLowerCase().trim();
+    const isGibberish = textLower.length < 3 || !/[aeiouy]/i.test(textLower) || /^([a-z])\1+$/.test(textLower);
+    
+    let scored: any[] = [];
+    
+    if (isGibberish) {
+      setResults([]);
+      setAiState('confusion');
+      return; // Cortamos el flujo, el input no tiene sentido
+    }
+    
+    const words = textLower.split(' ').filter(w => w.length > 2);
+    
+    scored = mockProperties.map(p => {
+      let score = 0;
+      
+      words.forEach(word => {
+        if (p.barrio?.toLowerCase().includes(word)) score += 40;
+        if (p.titulo?.toLowerCase().includes(word)) score += 30;
+        if (p.descripcion?.toLowerCase().includes(word)) score += 20;
+        if (p.tipo?.toLowerCase().includes(word)) score += 30;
+      });
+
+      if (driver === "familia" && p.ambientes >= 3) score += 30;
+      if (driver === "tranquilidad" && (p.descripcion?.toLowerCase().includes("patio") || p.descripcion?.toLowerCase().includes("jardin"))) score += 30;
+      if (driver === "inversión" && p.precio <= 150000) score += 30;
+      
+      if (ucm.rejected.includes(p.id)) score -= 60;
+      
       return { ...p, score: Math.min(100, score) };
-    }).sort((a, b) => b.score - a.score).slice(0, 6);
+    })
+    .filter(p => p.score >= 20) // Obligamos a que haya coincidido con algo real
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 6);
 
     setResults(scored);
     
     if (scored.length > 0) {
       setAiState('found_result');
     } else {
-      setAiState('suggesting_alternative');
+      setAiState('no_results');
     }
 
     const updatedUcm = {
@@ -162,14 +193,20 @@ export default function CrushiaSearchPage() {
       <style jsx global>{`
         @keyframes breathe-natural {
           0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.05); }
+          50% { transform: scale(1.03); }
         }
         @keyframes float-gentle {
-          0%, 100% { transform: translate(0, 0) scale(0.8); }
-          50% { transform: translate(-10px, -20px) scale(1.2); }
+          0%, 100% { transform: translate(0, 0) scale(0.8); opacity: 0.4; }
+          50% { transform: translate(-15px, -25px) scale(1.3); opacity: 0.9; }
+        }
+        @keyframes pulse-ring {
+          0% { transform: scale(0.85); opacity: 0.6; }
+          100% { transform: scale(1.5); opacity: 0; }
         }
         .breathe { animation: breathe-natural 4s ease-in-out infinite; }
-        .particle-anim { animation: float-gentle 3.5s ease-in-out infinite; }
+        .particle-anim { animation: float-gentle 4s ease-in-out infinite; }
+        .pulse-layer { animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
+        .animation-delay-500 { animation-delay: 500ms; }
       `}</style>
 
       {/* HEADER COGNITIVO */}
@@ -192,38 +229,48 @@ export default function CrushiaSearchPage() {
       {/* AVATAR DINÁMICO */}
       <div className="flex flex-col items-center mb-12 z-10">
         <div className={cn(
-          "relative w-52 h-52 rounded-full flex items-center justify-center transition-all duration-700 breathe",
-          aiState !== 'idle' && "scale-110"
+          "relative w-64 h-64 rounded-full flex items-center justify-center transition-all duration-700 breathe",
+          (aiState === 'thinking' || aiState === 'searching' || aiState === 'listening') && "scale-110"
         )}>
-          {/* RINGS & GLOW */}
-          <div className="absolute inset-0 rounded-full bg-accent/20 animate-ping opacity-20" />
+          {/* RINGS & GLOW FUTURISTA */}
+          {aiState !== 'idle' && (
+            <>
+              <div className={cn("absolute inset-0 rounded-full border-2 pulse-layer", StateConfig[aiState].colorClass.replace('from-', 'border-').split(' ')[0])} />
+              <div className={cn("absolute inset-2 rounded-full border border-white/20 pulse-layer animation-delay-500")} />
+            </>
+          )}
           <div className={cn(
-            "absolute inset-[-30px] rounded-full blur-[40px] opacity-30 bg-gradient-to-tr transition-all duration-500",
-            StateConfig[aiState].colorClass
+            "absolute inset-[-40px] rounded-full blur-[50px] opacity-40 bg-gradient-to-tr transition-all duration-700",
+            StateConfig[aiState].colorClass,
+            aiState === 'listening' ? "animate-pulse opacity-60" : ""
           )} />
 
-          {/* SISTEMA DE PARTÍCULAS */}
-          {aiState !== 'idle' && Array.from({ length: 8 }).map((_, i) => (
+          {/* SISTEMA DE PARTÍCULAS RADIALES */}
+          {aiState !== 'idle' && Array.from({ length: 12 }).map((_, i) => (
             <div 
               key={i}
-              className="absolute w-2 h-2 rounded-full bg-white/40 particle-anim"
+              className="absolute w-2 h-2 rounded-full bg-white/70 particle-anim shadow-[0_0_10px_rgba(255,255,255,1)]"
               style={{
-                left: `${50 + (Math.random() - 0.5) * 150}%`,
-                top: `${50 + (Math.random() - 0.5) * 150}%`,
-                animationDelay: `${i * 0.4}s`
+                left: `${50 + (Math.random() - 0.5) * 180}%`,
+                top: `${50 + (Math.random() - 0.5) * 180}%`,
+                animationDelay: `${i * 0.3}s`
               }}
             />
           ))}
 
           <div className={cn(
-            "relative w-44 h-44 rounded-full overflow-hidden border-4 transition-all shadow-2xl bg-black/40",
-            aiState === 'listening' ? "border-emerald-500/50" : "border-white/10"
+            "relative w-52 h-52 rounded-full overflow-hidden border-4 transition-all shadow-2xl bg-black/60 z-10",
+            aiState === 'listening' ? "border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.5)]" : 
+            aiState === 'confusion' || aiState === 'no_results' ? "border-red-500/50" : "border-white/10"
           )}>
             <Image 
               src={StateConfig[aiState].imagePath} 
               alt="Crushia" 
               fill 
-              className="object-cover opacity-90"
+              className={cn(
+                "object-cover transition-opacity duration-700",
+                aiState === 'idle' ? "opacity-70 grayscale-[30%]" : "opacity-100"
+              )}
               unoptimized
               onError={(e: any) => {
                 e.currentTarget.src = `https://picsum.photos/seed/${aiState}/400`;
@@ -232,12 +279,14 @@ export default function CrushiaSearchPage() {
           </div>
         </div>
         
-        <div className="mt-8 text-center">
+        <div className="mt-8 text-center bg-black/40 px-8 py-3 rounded-full border border-white/5 backdrop-blur-md">
           <div className="flex items-center justify-center gap-3">
-            <h2 className="text-2xl font-black tracking-tight uppercase italic">{StateConfig[aiState].label}</h2>
-            {aiState === 'thinking' && <RefreshCw className="h-5 w-5 animate-spin text-accent" />}
+            <h2 className={cn("text-2xl font-black tracking-tight uppercase italic", 
+              aiState === 'confusion' || aiState === 'no_results' ? "text-red-400" : "text-white"
+            )}>{StateConfig[aiState].label}</h2>
+            {(aiState === 'thinking' || aiState === 'searching') && <RefreshCw className="h-5 w-5 animate-spin text-accent" />}
           </div>
-          <p className="text-zinc-500 text-sm italic mt-1 font-medium">{StateConfig[aiState].statusText}</p>
+          <p className="text-zinc-400 text-sm italic mt-1 font-medium">{StateConfig[aiState].statusText}</p>
         </div>
       </div>
 
