@@ -16,7 +16,10 @@ import {
   Search as SearchIcon
 } from 'lucide-react';
 import { useCore } from '@/core/use-core';
-import { properties as mockProperties } from '@/lib/data';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase/provider';
+import { collection, query, orderBy, limit, type CollectionReference, type DocumentData } from 'firebase/firestore';
+import type { Property } from '@/lib/types';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 
 // 🧠 CONFIGURACIÓN DE ESTADOS COGNITIVOS
@@ -49,11 +52,23 @@ const StateConfig: Record<AIState, { label: string; statusText: string; imagePat
 
 export default function CrushiaSearchPage() {
   const { toast } = useToast();
-  const { cognitive, _store, eventBus } = useCore();
+  const { cognitive, _store, eventBus, user, tenant } = useCore();
+  const firestore = useFirestore();
   const [aiState, setAiState] = useState<AIState>('idle');
   const [inputText, setInputText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [results, setResults] = useState<any[]>([]);
+
+  const propertiesRef = useMemoFirebase(() => {
+    if (!user || !firestore || !tenant?.id) return null;
+    return query(
+      collection(firestore, 'tenants', tenant.id, 'properties'), 
+      orderBy('createdAt', 'desc'),
+      limit(50)
+    ) as unknown as CollectionReference<DocumentData>;
+  }, [user, firestore, tenant?.id]);
+
+  const { data: dbProperties } = useCollection<Property>(propertiesRef as any);
   const recognitionRef = useRef<any>(null);
 
   // Modelo Cognitivo del Usuario (UCM)
@@ -124,20 +139,26 @@ export default function CrushiaSearchPage() {
     }
     
     const words = textLower.split(' ').filter(w => w.length > 2);
+    const realProperties = dbProperties || [];
     
-    scored = mockProperties.map(p => {
+    scored = realProperties.map(p => {
       let score = 0;
+      let wordMatched = false;
       
       words.forEach(word => {
-        if (p.barrio?.toLowerCase().includes(word)) score += 40;
-        if (p.titulo?.toLowerCase().includes(word)) score += 30;
-        if (p.descripcion?.toLowerCase().includes(word)) score += 20;
-        if (p.tipo?.toLowerCase().includes(word)) score += 30;
+        if (p.barrio?.toLowerCase().includes(word)) { score += 40; wordMatched = true; }
+        if (p.titulo?.toLowerCase().includes(word)) { score += 30; wordMatched = true; }
+        if (p.descripcion?.toLowerCase().includes(word)) { score += 20; wordMatched = true; }
+        if (p.tipo?.toLowerCase().includes(word)) { score += 30; wordMatched = true; }
       });
 
-      if (driver === "familia" && p.ambientes >= 3) score += 30;
-      if (driver === "tranquilidad" && (p.descripcion?.toLowerCase().includes("patio") || p.descripcion?.toLowerCase().includes("jardin"))) score += 30;
-      if (driver === "inversión" && p.precio <= 150000) score += 30;
+      if (wordMatched) {
+        if (driver === "familia" && (p.ambientes || 0) >= 3) score += 30;
+        if (driver === "tranquilidad" && (p.descripcion?.toLowerCase().includes("patio") || p.descripcion?.toLowerCase().includes("jardin"))) score += 30;
+        if (driver === "inversión" && (p.precio || Infinity) <= 150000) score += 30;
+      } else {
+        score = 0; // Obligamos a descartarlo si no pegó UNA sola palabra real
+      }
       
       if (ucm.rejected.includes(p.id)) score -= 60;
       
@@ -327,8 +348,8 @@ export default function CrushiaSearchPage() {
             <div key={res.id} className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] overflow-hidden hover:border-accent/30 transition-all group backdrop-blur-sm shadow-xl flex flex-col">
               <div className="relative h-56 bg-white/5 overflow-hidden">
                 <Image 
-                  src={`https://picsum.photos/seed/${res.id}/600/400`} 
-                  alt={res.titulo} 
+                  src={(PlaceHolderImages.find(img => img.id === res.imagen)?.imageUrl) || `https://picsum.photos/seed/${res.id}/600/400`} 
+                  alt={res.titulo || 'Propiedad'} 
                   fill 
                   className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" 
                   unoptimized
@@ -343,10 +364,10 @@ export default function CrushiaSearchPage() {
                   <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest mt-1">{res.barrio} • {res.tipo}</p>
                 </div>
                 <div className="text-sm text-zinc-400 italic leading-relaxed border-l-2 border-accent/30 pl-4 py-1 bg-white/5 rounded-r-lg">
-                  {res.descripcion?.substring(0, 100)}...
+                  {res.descripcion ? res.descripcion.substring(0, 100) : 'Estratégica unidad residencial...'}...
                 </div>
                 <div className="mt-auto pt-4">
-                  <div className="text-2xl font-black text-white">USD {res.precio.toLocaleString()}</div>
+                  <div className="text-2xl font-black text-white">USD {(res.precio || 0).toLocaleString()}</div>
                   <div className="flex gap-3 pt-4">
                     <Button onClick={() => handleDecision(res.id, true)} className="flex-1 h-12 rounded-xl bg-white text-black font-black hover:bg-zinc-200 transition-all">ME GUSTA</Button>
                     <Button onClick={() => handleDecision(res.id, false)} variant="outline" className="h-12 w-12 rounded-xl border-white/10 hover:bg-red-500/10 hover:text-red-500 transition-all group/btn">
