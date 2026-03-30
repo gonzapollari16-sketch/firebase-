@@ -25,6 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import CrushomeLogo from '@/components/crushome-logo';
 
 /**
  * @fileOverview CRUSHOME AI GUIDE™ — Master Console
@@ -32,8 +33,47 @@ import { cn } from '@/lib/utils';
  */
 export default function AiGuideMasterPage() {
   const { cognitive, worldModel, experienceLogs, systemStatus, plan, role } = useCore();
-  const [aiState, setAiState] = useState<'idle' | 'thinking' | 'writing' | 'success'>('idle');
   const [activeTab, setActiveTab] = useState('overview');
+
+  const [messages, setMessages] = useState<{role: 'ai'|'user', text: string}[]>([
+    { role: 'ai', text: "Hola. Soy el Neural Core de Crushome. Analizo y respondo a todas tus dudas sobre la plataforma. ¿Qué necesitás aprender hoy?" }
+  ]);
+  const [inputText, setInputText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      const container = scrollRef.current;
+      container.scrollTop = container.scrollHeight;
+    }
+  }, [messages, isTyping]);
+
+  const handleSend = () => {
+    if (!inputText.trim() || isTyping) return;
+    const userMsg = inputText.trim();
+    setInputText('');
+    setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
+    setIsTyping(true);
+
+    setTimeout(() => {
+      const lower = userMsg.toLowerCase();
+      let aiResponse = "Lo siento, sigo indexando esa parte del sistema. Por ahora, podés buscar información en el panel lateral o comunicarte con el equipo de ingeniería.";
+      
+      if (lower.includes('carga') || lower.includes('cargar') || lower.includes('propiedad') || lower.includes('publicar')) {
+        aiResponse = "Para subir una nueva propiedad, dirigite al módulo '1. Carga Propiedades' en tu panel lateral izquierdo. Allí encontrarás un formulario avanzado para detallar ambientes, fotos, precio y amenidades. Guardar generará automáticamente un borrador que podrás destacar.";
+      } else if (lower.includes('crm') || lower.includes('lead') || lower.includes('cliente') || lower.includes('realmatch') || lower.includes('crushmatch')) {
+        aiResponse = "El seguimiento automatizado de leads y clientes se gestiona desde el módulo '18. CRM CrushMatch' (en Admin Center). Podrás calificar interesados, registrar etapas de cierre y asignar puntajes para maximizar tu conversión (ROI).";
+      } else if (lower.includes('match') || lower.includes('buscador') || lower.includes('crushia') || lower.includes('ia')) {
+        aiResponse = "El motor semántico lo encuentras en el módulo '2. CrushIA Master'. Permite que ingreses descripciones naturales del cliente (ej: 'Busco lugar tranquilo para mi familia') y cruzará los datos algorítmicamente para encontrar la propiedad perfecta.";
+      } else if (lower.includes('hola') || lower.includes('buen') || lower.includes('saludo')) {
+        aiResponse = "¡Hola! Bienvenido al cerebro central de operaciones. Estoy listo para ayudarte a dominar el ecosistema. ¿Sobre qué módulo quieres aprender?";
+      }
+
+      setMessages(prev => [...prev, { role: 'ai', text: aiResponse }]);
+      setIsTyping(false);
+    }, 1200);
+  };
 
   const StatCard = ({ title, value, icon: Icon, color }: any) => (
     <Card className="bg-white/[0.02] border-white/5 overflow-hidden relative group hover:bg-white/[0.04] transition-all">
@@ -59,14 +99,19 @@ export default function AiGuideMasterPage() {
       
       {/* HEADER DE COMANDO COGNITIVO */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div>
-          <h1 className="text-5xl font-black tracking-tighter flex items-center gap-4 italic">
-            <Sparkles className="text-accent h-12 w-12 animate-pulse" />
-            AI GUIDE MASTER
-          </h1>
-          <p className="text-white/30 mt-2 uppercase text-[10px] font-black tracking-[0.4em]">
-            Sistema Operativo Cognitivo v1.0 — {systemStatus.toUpperCase()}
-          </p>
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+          <div className="bg-black/40 p-3 rounded-2xl border border-white/5 shadow-2xl shrink-0">
+             <CrushomeLogo className="w-16 h-16 md:w-20 md:h-20" />
+          </div>
+          <div>
+            <h1 className="text-3xl md:text-5xl font-black tracking-tighter flex items-center gap-4 italic text-white shadow-sm">
+              <Sparkles className="text-accent h-8 w-8 md:h-12 md:w-12 animate-pulse" />
+              AI GUIDE MASTER
+            </h1>
+            <p className="text-white/40 mt-2 uppercase text-[10px] md:text-xs font-black tracking-[0.3em]">
+              Sistema Operativo Cognitivo v1.0 — {systemStatus.toUpperCase()}
+            </p>
+          </div>
         </div>
         <div className="flex gap-3">
           <Link href="/"><Button variant="outline" className="border-white/10 rounded-xl">Dashboard</Button></Link>
@@ -164,29 +209,68 @@ export default function AiGuideMasterPage() {
             
             <CardHeader className="p-8">
               <div className="flex items-center gap-4 mb-2">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-xl font-black shadow-xl">C</div>
+                <div className={cn(
+                  "w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-xl font-black shadow-xl transition-all duration-500",
+                  isTyping ? "animate-pulse scale-110 shadow-[0_0_30px_rgba(236,72,153,0.5)]" : ""
+                )}>
+                  C
+                </div>
                 <div>
                   <CardTitle className="text-lg font-black tracking-tight italic">AI Assistant</CardTitle>
-                  <p className="text-[10px] text-emerald-400 font-black uppercase tracking-widest">Operator Mode Active</p>
+                  <p className={cn(
+                    "text-[10px] font-black uppercase tracking-widest transition-colors",
+                    isTyping ? "text-pink-400 animate-pulse" : "text-emerald-400"
+                  )}>
+                    {isTyping ? "Procesando Consulta..." : "Operator Mode Active"}
+                  </p>
                 </div>
               </div>
             </CardHeader>
 
-            <CardContent className="flex-1 p-8 pt-0 flex flex-col">
-              <div className="flex-1 bg-black/20 rounded-3xl p-6 mb-6 border border-white/5 space-y-4 overflow-y-auto max-h-[400px] scrollbar">
-                <div className="text-xs text-white/40 italic leading-relaxed">
-                  "Hola. Soy tu guía cognitivo. Estoy observando una fricción en el módulo de Leads: la tasa de respuesta en WhatsApp ha bajado un 12%. ¿Querés que ajuste los templates automáticamente?"
-                </div>
+            <CardContent className="flex-1 p-8 pt-0 flex flex-col h-[500px]">
+              <div 
+                ref={scrollRef} 
+                className="flex-1 bg-black/20 rounded-3xl p-6 mb-6 border border-white/5 space-y-4 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
+              >
+                {messages.map((m, i) => (
+                  <div key={i} className={cn("flex flex-col w-full", m.role === 'user' ? "items-end" : "items-start")}>
+                    <div className={cn(
+                      "text-xs p-4 max-w-[85%] leading-relaxed",
+                      m.role === 'user' 
+                        ? "bg-accent/10 border-accent/20 border text-white font-medium rounded-2xl rounded-tr-md shadow-lg" 
+                        : "bg-white/5 text-white/70 italic rounded-2xl rounded-tl-md border border-white/5"
+                    )}>
+                      {m.text}
+                    </div>
+                  </div>
+                ))}
+                
+                {isTyping && (
+                  <div className="flex items-center gap-1.5 p-4 bg-white/5 text-white/50 w-20 rounded-2xl rounded-tl-md border border-white/5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                )}
               </div>
 
-              <div className="relative group">
+              <div className="relative group shrink-0">
                 <div className="absolute inset-0 bg-accent/20 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 rounded-full" />
-                <div className="relative flex gap-2 p-2 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-xl">
+                <div className="relative flex gap-2 p-2 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-xl focus-within:border-accent/50 transition-colors">
                   <input 
-                    placeholder="¿Qué querés optimizar hoy?" 
-                    className="flex-1 bg-transparent border-none outline-none px-4 text-sm placeholder:text-white/20"
+                    placeholder="Escribí acá (Ej: ¿Cómo cargo una propiedad?)" 
+                    className="flex-1 bg-transparent border-none outline-none px-4 text-sm font-medium text-white placeholder:text-white/20"
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                    disabled={isTyping}
                   />
-                  <Button size="icon" className="rounded-xl bg-accent text-black hover:scale-105 transition-transform">
+                  <Button 
+                    onClick={handleSend} 
+                    disabled={isTyping || !inputText.trim()}
+                    size="icon" 
+                    className="rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:scale-105 transition-all shadow-lg"
+                  >
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </div>
