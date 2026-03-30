@@ -42,7 +42,7 @@ export const CRUSHOME_MODULES: ModuleDefinition[] = [
   { id: '15', name: '15. Motor de Precio (ACM)', route: '/dashboard/pricing-engine', category: 'billing', featureKey: 'billing:manage', icon: Calculator, order: 15 },
   { id: '16', name: '16. AI Guide (Manual)', route: '/ai-guide', category: 'cognitive', featureKey: 'search:ai', icon: PackageCheck, order: 16 },
   { id: '17', name: '17. Modo Procesamiento', route: '/ai-assistant', category: 'cognitive', featureKey: 'admin:access', icon: Activity, order: 17 },
-  { id: '18', name: '18. CRM RealMatch', route: '/intelligence/crm', category: 'admin', featureKey: 'leads:manage', icon: Briefcase, order: 18 },
+  { id: '18', name: '18. CRM CrushMatch', route: '/intelligence/crm', category: 'admin', featureKey: 'leads:manage', icon: Briefcase, order: 18 },
   { id: '19', name: '19. Panel Ingreso', route: '/', category: 'admin', featureKey: 'admin:access', icon: LogIn, order: 19 },
   { id: '20', name: '20. Admin Master', route: '/admin', category: 'admin', featureKey: 'admin:access', icon: Shield, order: 20 },
   { id: '21', name: '21. Engineering Blueprint', route: '/engineering-blueprint', category: 'cognitive', featureKey: 'admin:access', icon: LayoutTemplate, order: 21 },
