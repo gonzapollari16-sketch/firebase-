@@ -69,7 +69,7 @@
     "typescript": "^5.5.3"
   },
   "engines": {
-    "node": "18"
+    "node": "20"
   },
   "optionalDependencies": {
     "@next/swc-linux-x64-gnu": "14.2.3",
