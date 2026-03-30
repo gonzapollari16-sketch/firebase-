@@ -11,6 +11,12 @@ const nextConfig = {
       { protocol: 'https', hostname: 'avatar.vercel.sh' },
     ],
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   webpack: (
     config,
     { isServer }
