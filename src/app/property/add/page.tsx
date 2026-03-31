@@ -12,12 +12,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase/provider';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getClientStorage } from '@/firebase/storage-client';
+import { applyWatermark } from '@/lib/watermark';
 import { DuplicateDetector } from '@/core/deduplication/detector';
 import { DuplicatePropertyWarning } from '@/components/duplicate-property-warning';
 import { DuplicateResult } from '@/core/deduplication/types';
 import IntelligentLocationFilter from '@/components/intelligent-location-filter';
 import { cn } from '@/lib/utils';
-import { Loader2, ArrowLeft, Building, DollarSign, MapPin, AlertCircle } from 'lucide-react';
+import { Loader2, ArrowLeft, Building, DollarSign, MapPin, AlertCircle, UploadCloud } from 'lucide-react';
 import { useCore } from '@/core/use-core';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { Property, PropertyStatus } from '@/lib/types';
@@ -75,6 +78,8 @@ export default function PropertyAddPage() {
   const [duplicateCheck, setDuplicateCheck] = useState<DuplicateResult | null>(null);
   const [isWarningOpen, setIsWarningOpen] = useState(false);
   const [selectedPlaceholder, setSelectedPlaceholder] = useState(PlaceHolderImages[0].id);
+  const [isProcessingWatermark, setIsProcessingWatermark] = useState(false);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
 
   const methods = useForm<PropertyFormValues>({
     defaultValues: {
@@ -201,7 +206,7 @@ export default function PropertyAddPage() {
         antiguedadAnios: data.antiguedadAnios ? parseInt(data.antiguedadAnios) : 0,
         formaPago: data.formaPago || 'Contado',
         videoLink: data.videoLink || '',
-        imagen: selectedPlaceholder,
+        imagen: uploadedImageUrl || selectedPlaceholder,
         userId: user?.uid || 'anonymous',
         tenantId: tenant.id,
         status: (resolution ? 'pending_review' : 'active') as PropertyStatus,
@@ -507,22 +512,68 @@ export default function PropertyAddPage() {
           <div className="space-y-8">
             <Card className="bg-white/[0.03] border-white/10">
               <CardHeader className="bg-white/5 border-b border-white/5">
-                <CardTitle className="text-sm">Imagen Destacada</CardTitle>
+                <CardTitle className="text-sm">Imagen Destacada (Con Marca de Agua)</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="grid grid-cols-2 gap-2">
-                  {PlaceHolderImages.map((img) => (
-                    <div 
-                      key={img.id}
-                      onClick={() => setSelectedPlaceholder(img.id)}
-                      className={cn(
-                        "relative aspect-video rounded-xl overflow-hidden cursor-pointer border-2 transition-all",
-                        selectedPlaceholder === img.id ? "border-accent scale-95" : "border-transparent opacity-50 grayscale hover:opacity-100 hover:grayscale-0"
-                      )}
-                    >
-                      <img src={img.imageUrl} alt="Placeholder" className="w-full h-full object-cover" />
-                    </div>
-                  ))}
+                <div className="space-y-4">
+                  <div className="relative aspect-video rounded-xl overflow-hidden border-2 border-dashed border-white/10 hover:border-accent transition-all group">
+                    {uploadedImageUrl ? (
+                      <>
+                        <img src={uploadedImageUrl} className="w-full h-full object-cover" alt="Property" />
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <label className="cursor-pointer bg-accent text-white px-4 py-2 rounded-lg font-black text-xs uppercase tracking-widest shadow-2xl">Cambiar Imagen</label>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                        {isProcessingWatermark ? (
+                          <div className="text-center animate-pulse">
+                            <Loader2 className="h-10 w-10 animate-spin mx-auto mb-2 text-accent" />
+                            <p className="text-[10px] uppercase font-black tracking-widest">Incrustando Marca de Agua IA...</p>
+                          </div>
+                        ) : (
+                          <>
+                            <UploadCloud className="h-10 w-10 mb-2 opacity-20" />
+                            <p className="text-sm font-medium">Subí la foto principal</p>
+                            <label className="mt-2 cursor-pointer bg-white/5 hover:bg-white/10 px-4 py-2 rounded-lg text-xs font-bold transition-all border border-white/5">
+                               Seleccionar Archivo
+                               <input 
+                                 type="file" 
+                                 className="hidden" 
+                                 accept="image/*" 
+                                 onChange={async (e) => {
+                                   const file = e.target.files?.[0];
+                                   if (!file) return;
+                                   setIsProcessingWatermark(true);
+                                   try {
+                                     // 1. Aplicar Marca de Agua (Punto 1 del Plan)
+                                     const stampedImage = await applyWatermark(file, '/images/logo-crushia.png');
+                                     
+                                     // 2. Upload a Firebase Storage
+                                     const storage = await getClientStorage();
+                                     const storageRef = ref(storage, `properties/${tenant?.id || 'public'}/${Date.now()}_${file.name}`);
+                                     const uploadRes = await uploadBytes(storageRef, stampedImage);
+                                     const downloadUrl = await getDownloadURL(uploadRes.ref);
+                                     
+                                     setUploadedImageUrl(downloadUrl);
+                                     toast({ title: "Imagen Procesada", description: "Marca de agua aplicada y archivo subido con éxito." });
+                                   } catch (e) {
+                                     toast({ variant: "destructive", title: "Error en procesamiento", description: "No se pudo estampar la imagen." });
+                                   } finally {
+                                     setIsProcessingWatermark(false);
+                                   }
+                                 }}
+                               />
+                            </label>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3 bg-accent/5 rounded-lg border border-accent/10">
+                    <p className="text-[9px] text-accent font-black uppercase tracking-widest">Tecnología Anti-Plagio Activa</p>
+                    <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">Tus fotos se sellan digitalmente con la identidad de CRUSHOME antes de guardarse en nuestros servidores de alta seguridad.</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
