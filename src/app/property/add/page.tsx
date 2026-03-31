@@ -37,19 +37,31 @@ interface PropertyFormValues {
   numero: string;
   piso: string;
   unidad: string;
+  referencias: string;
   lat: number | null;
   lng: number | null;
   supTotal: string;
   supCubierta: string;
+  supSemicubierta: string;
+  supDescubierta: string;
+  otrasSuperficies: string;
   ambientes: string;
   dormitorios: string;
   banos: string;
+  plantas: string;
+  tipoCochera: string;
   cochera: boolean;
   aptoCredito: boolean;
   escritura: boolean;
+  tienePlanos: boolean;
+  reglamentoCoprop: boolean;
   pozo: boolean;
   aEstrenar: boolean;
+  vacante: boolean;
   destacado: boolean;
+  antiguedadAnios: string;
+  formaPago: string;
+  videoLink: string;
 }
 
 export default function PropertyAddPage() {
@@ -80,19 +92,31 @@ export default function PropertyAddPage() {
       numero: '',
       piso: '',
       unidad: '',
+      referencias: '',
       lat: null, 
       lng: null,
       supTotal: '',
       supCubierta: '',
+      supSemicubierta: '',
+      supDescubierta: '',
+      otrasSuperficies: '',
       ambientes: '1',
       dormitorios: '0',
       banos: '1',
+      plantas: '1',
+      tipoCochera: '',
       cochera: false,
       aptoCredito: false,
       escritura: true,
+      tienePlanos: false,
+      reglamentoCoprop: false,
       pozo: false,
       aEstrenar: false,
-      destacado: false
+      vacante: false,
+      destacado: false,
+      antiguedadAnios: '',
+      formaPago: 'Contado',
+      videoLink: ''
     }
   });
 
@@ -151,20 +175,32 @@ export default function PropertyAddPage() {
         numero: data.numero,
         piso: data.piso,
         unidad: data.unidad,
+        referencias: data.referencias || '',
         lat: Number(data.lat!),
         lng: Number(data.lng!),
         metros: parseFloat(data.supTotal),
         supTotal: parseFloat(data.supTotal),
         supCubierta: data.supCubierta ? parseFloat(data.supCubierta) : 0,
+        supSemicubierta: data.supSemicubierta ? parseFloat(data.supSemicubierta) : 0,
+        supDescubierta: data.supDescubierta ? parseFloat(data.supDescubierta) : 0,
+        otrasSuperficies: data.otrasSuperficies || '',
         ambientes: parseInt(data.ambientes),
         dormitorios: parseInt(data.dormitorios),
         banos: data.banos,
+        plantas: parseInt(data.plantas) || 1,
+        tipoCochera: data.tipoCochera || '',
         cochera: data.cochera,
         aptoCredito: data.aptoCredito,
         escritura: data.escritura,
+        tienePlanos: data.tienePlanos,
+        reglamentoCoprop: data.reglamentoCoprop,
         pozo: data.pozo,
         aEstrenar: data.aEstrenar,
+        vacante: data.vacante,
         destacado: data.destacado,
+        antiguedadAnios: data.antiguedadAnios ? parseInt(data.antiguedadAnios) : 0,
+        formaPago: data.formaPago || 'Contado',
+        videoLink: data.videoLink || '',
         imagen: selectedPlaceholder,
         userId: user?.uid || 'anonymous',
         tenantId: tenant.id,
@@ -301,14 +337,54 @@ export default function PropertyAddPage() {
               </CardContent>
             </Card>
 
+            <Card className="bg-white/[0.03] border-white/10">
+              <CardHeader className="bg-white/5 border-b border-white/5">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-accent" /> Ubicación Detallada
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 space-y-6">
+                <IntelligentLocationFilter />
+                
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-4 border-t border-white/5">
+                  <div className="space-y-2">
+                    <Label>Calle</Label>
+                    <Input {...methods.register('calle')} placeholder="Ej: Av. Santa Fe" className="bg-black/40 border-white/10 h-10" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Altura</Label>
+                    <Input {...methods.register('numero')} placeholder="Ej: 3250" className="bg-black/40 border-white/10 h-10" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Piso</Label>
+                    <Input {...methods.register('piso')} placeholder="Ej: 7" className="bg-black/40 border-white/10 h-10" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Depto/Unidad</Label>
+                    <Input {...methods.register('unidad')} placeholder="Ej: B" className="bg-black/40 border-white/10 h-10" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Referencias Adicionales</Label>
+                  <Input {...methods.register('referencias')} placeholder="Ej: A metros de Av. Corrientes y subte B" className="bg-black/40 border-white/10 h-10" />
+                </div>
+
+                {!methods.watch('lat') && (
+                  <div className="mt-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 flex gap-2 items-center text-red-400 text-[10px] font-black uppercase tracking-widest animate-pulse">
+                    <AlertCircle className="h-4 w-4" /> Ubicación obligatoria en el mapa
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <Card className="bg-white/[0.03] border-white/10">
                 <CardHeader className="bg-white/5 border-b border-white/5">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-accent" /> Valores
+                    <DollarSign className="h-4 w-4 text-accent" /> Valores y Financiación
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6 space-y-4">
+                <CardContent className="p-6 space-y-6">
                   <div className="flex gap-2">
                     <Select onValueChange={(v) => methods.setValue('moneda', v)} defaultValue="USD">
                       <SelectTrigger className="w-24 bg-black/40 border-white/10 h-11">
@@ -317,57 +393,113 @@ export default function PropertyAddPage() {
                       <SelectContent>
                         <SelectItem value="USD">USD</SelectItem>
                         <SelectItem value="ARS">ARS</SelectItem>
+                        <SelectItem value="EUR">EUR</SelectItem>
+                        <SelectItem value="BRL">BRL</SelectItem>
                       </SelectContent>
                     </Select>
                     <Input type="number" {...methods.register('precio', { required: true })} placeholder="Precio" className="flex-1 bg-black/40 border-white/10 h-11" />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs">Expensas (opcional)</Label>
-                    <Input type="number" {...methods.register('expensas')} placeholder="Monto mensual" className="bg-black/40 border-white/10 h-11" />
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Expensas</Label>
+                      <Input type="number" {...methods.register('expensas')} placeholder="Monto mensual" className="bg-black/40 border-white/10 h-11" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Forma de Pago</Label>
+                      <Select onValueChange={(v) => methods.setValue('formaPago', v)} defaultValue="Contado">
+                        <SelectTrigger className="bg-black/40 border-white/10 h-11">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Contado">Contado</SelectItem>
+                          <SelectItem value="Financiado">Financiado</SelectItem>
+                          <SelectItem value="Facilidades">Facilidades</SelectItem>
+                          <SelectItem value="Permuta">Permuta</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
               <Card className="bg-white/[0.03] border-white/10">
                 <CardHeader className="bg-white/5 border-b border-white/5">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-accent" /> Ubicación
-                  </CardTitle>
+                  <CardTitle className="text-sm">Superficies Extendidas</CardTitle>
                 </CardHeader>
-                <CardContent className="p-6">
-                  <IntelligentLocationFilter />
-                  {!methods.watch('lat') && (
-                    <div className="mt-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 flex gap-2 items-center text-red-400 text-[10px] font-black uppercase tracking-widest animate-pulse">
-                      <AlertCircle className="h-4 w-4" /> Ubicación obligatoria en el mapa
-                    </div>
-                  )}
+                <CardContent className="p-6 grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Semicubierta (m²)</Label>
+                    <Input type="number" {...methods.register('supSemicubierta')} className="bg-black/40 border-white/10 h-10" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Descubierta (m²)</Label>
+                    <Input type="number" {...methods.register('supDescubierta')} className="bg-black/40 border-white/10 h-10" />
+                  </div>
+                  <div className="col-span-2 space-y-2">
+                    <Label className="text-xs text-muted-foreground">Otras Superficies</Label>
+                    <Input {...methods.register('otrasSuperficies')} placeholder="Ej: Terraza 20m², Balcón 6m²" className="bg-black/40 border-white/10 h-10" />
+                  </div>
                 </CardContent>
               </Card>
             </div>
 
             <Card className="bg-white/[0.03] border-white/10">
               <CardHeader className="bg-white/5 border-b border-white/5">
-                <CardTitle className="text-sm">Características y Atributos</CardTitle>
+                <CardTitle className="text-sm">Características, Legalidad y Multimedia</CardTitle>
               </CardHeader>
-              <CardContent className="p-6 grid grid-cols-2 lg:grid-cols-3 gap-6">
-                {[
-                  { id: 'cochera', label: 'Cochera' },
-                  { id: 'aptoCredito', label: 'Apto Crédito' },
-                  { id: 'escritura', label: 'Escritura' },
-                  { id: 'pozo', label: 'Venta en Pozo' },
-                  { id: 'aEstrenar', label: 'A Estrenar' },
-                  { id: 'destacado', label: 'Propiedad Destacada' },
-                ].map((attr) => (
-                  <div key={attr.id} className="flex items-center space-x-2">
-                    <input 
-                      type="checkbox" 
-                      id={attr.id}
-                      {...methods.register(attr.id as any)}
-                      className="w-5 h-5 rounded border-white/10 bg-black/40 accent-accent"
-                    />
-                    <Label htmlFor={attr.id} className="text-xs cursor-pointer">{attr.label}</Label>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8 pb-8 border-b border-white/5">
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Plantas / Pisos</Label>
+                    <Input type="number" {...methods.register('plantas')} className="bg-black/40 border-white/10 h-10" />
                   </div>
-                ))}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Tipo Cochera</Label>
+                    <Select onValueChange={(v) => methods.setValue('tipoCochera', v)}>
+                      <SelectTrigger className="bg-black/40 border-white/10 h-10">
+                        <SelectValue placeholder="Seleccione..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Cubierta">Cubierta</SelectItem>
+                        <SelectItem value="Semicubierta">Semicubierta</SelectItem>
+                        <SelectItem value="Descubierta">Descubierta</SelectItem>
+                        <SelectItem value="Subterránea">Subterránea</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Antigüedad (Años)</Label>
+                    <Input type="number" {...methods.register('antiguedadAnios')} className="bg-black/40 border-white/10 h-10" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Enlace Video / Tour 360</Label>
+                    <Input {...methods.register('videoLink')} placeholder="Youtube / Matterport" className="bg-black/40 border-white/10 h-10" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                  {[
+                    { id: 'aptoCredito', label: 'Apto Crédito' },
+                    { id: 'escritura', label: 'Escritura' },
+                    { id: 'tienePlanos', label: 'Planos Aprobados' },
+                    { id: 'reglamentoCoprop', label: 'Regl. Copropiedad' },
+                    { id: 'vacante', label: 'Desocupada' },
+                    { id: 'pozo', label: 'Venta en Pozo' },
+                    { id: 'aEstrenar', label: 'A Estrenar' },
+                    { id: 'cochera', label: 'Cochera Propia' },
+                    { id: 'destacado', label: 'Subrayar (Destacado)' },
+                  ].map((attr) => (
+                    <div key={attr.id} className="flex items-center space-x-2">
+                      <input 
+                        type="checkbox" 
+                        id={attr.id}
+                        {...methods.register(attr.id as any)}
+                        className="w-5 h-5 rounded border-white/10 bg-black/40 accent-accent"
+                      />
+                      <Label htmlFor={attr.id} className="text-xs cursor-pointer">{attr.label}</Label>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           </div>
